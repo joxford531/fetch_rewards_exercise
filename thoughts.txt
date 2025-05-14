@@ -1,0 +1,9 @@
+Assumptions and Though Process
+
+* The data provided appears to be stored in MongoDB so the foreign keys that are strings are using Mongo's ObjectId column.
+
+* BrandCode references a partner file, for simplicity I'm assuming this could just be a relationship 
+based on string equality so I am not diagramming it as a Foreign Key.
+
+* There is a many-to-many relationship between Receipts and Items which is represented in my entity relationship diagram 
+and vastly simplified as the data quality in `receipts.json` isn't great.
