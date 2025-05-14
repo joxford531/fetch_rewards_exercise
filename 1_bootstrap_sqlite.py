@@ -264,7 +264,7 @@ def seed_receipts(database):
   with sqlite3.connect(database) as conn:
     cursor = conn.cursor()
 
-    for num in range(1, 1000):
+    for num in range(1, 10000):
       bonus_points_earned = random.randint(10, 100)
 
       purchase_date = fake.date_time_between(start_date='-26w', end_date='-4w')
