@@ -1,0 +1,48 @@
+****** What questions do you have about the data? ******
+Hey everyone, I looked through a subset of the data provided to me for Brands, Receipts, and Users. I had a few questions related about Brands and Receipts.
+
+For Brands, I had two questions.
+
+* The field of `topBrand` isn't present on each entry. There are many entries that have a value of `false` for this field, could we assume if the field isn't present then the Brand isn't considered "top?" In either case I think it would be a good idea to do a data cleanup so that every row matches a common schema for clarity's sake.
+
+* There are many Brands in the catalog that appear to be test data, that is the `name` field of the Brand contains the word "test" in it somewhere. Is this intentional? Could we assume test data isn't mixed with production data in our production environments? If there is then we should perform a clean-up as we cannot provide metrics to our clients and stakeholders that aren't accurate.
+
+
+For Receipts, I have a few more questions about the schema and certain values for fields:
+
+* One of the first things that jumped out to me is that many of the entries in `receiptItems` array have a description of "ITEM NOT FOUND." Is this typical and part of some lifecycle of the data during the processing of rewards?
+
+* There are many items who have a description that appears to be valid, but they are missing the `brandCode` field. Do we process items in a receipt that have a description but there is no matching Brand in our catalog? I'm assuming this would be very valuable information if we need to use this data to calculate metrics across all Brands.
+
+* The last thing that seemed to be a big discrepancy is that the `competitiveProduct` field isn't present on items that have a valid description. Again, is this something where we could assume the lack of a field means that it otherwise would be set to `false?` There are many items that contain this field with a value of `false` so I would like to know if we could map all this data to a common schema.
+
+
+****** How did you discover the data quality issues? ******
+
+I found these discrepancies by loading the JSON data I was provided into a simple local PySpark job and used a Jupyter Notebook, I've provided my results in the repository I've created. I also just expanded many of the JSON lines and scrolled through the data, most of these issues I found were easily discovered through this process.
+
+
+****** What do you need to know to resolve the data quality issues? ******
+
+For the entries that don't have fields that I mentioned above, is this a result of schema versioning? That is, do the entries with these specific fields represent a later schema? If that is this case then we certainly need some kind of schema version field present at the root level of each entry which could help us properly calculate metrics across versions.
+
+
+****** What other information would you need to help you optimize the data assets you're trying to create? ******
+
+There are many fields that appear to represent foreign keys to relational data that are strings but only contain numbers. Is there a reason we aren't using integers in this data? We could certainly parse these to integers when performing calculations but that can be costly when dealing with millions of records.
+
+
+****** What performance and scaling concerns do you anticipate in production and how do you plan to address them? ******
+
+As mentioned above, the inconsistency with fields being strings instead of integers could lead to scaling issues when trying to perform aggregate queries if we deal with millions and millions of records in a workflow. The _id field in both datasets appears to be MongoDB's ObjectID unique identifier. This field should be flattened, otherwise we have to perform a data transformation to flatten it which is important when performing aggregate queries across receipt items.
+
+I propose we attempt to make the changes I've outlined by first performing the same Data Quality checks in our Test, UAT, and finally our Production environments to gauge the effort it would take to clean up this data. There could be multiple ways to accomplish this with various tools:
+
+* We could extract a copy of all data in these datasets and clean it up using AWS Glue DataBrew or other AWS tools.
+
+* We could write our own scripts to parse this data.
+
+A common way to get the data into the production datasets is to perform a table rename. For example, the new data could be stored in a temporary table prefixed by an underscore. The production tables are then renamed to something else and then temporary tables are renamed to the proper production tables. This of course would likely require downtime with our system so we would need to assess the cost of this operation, could the costs be so large that this effort isn't worth it right now? At the very least we need to come up with a plan so that our data is clean and accurate, we can't risk providing inaccurate data to our clients.
+
+
+I appreciate any help I could receive and if I've made any incorrect assumptions. Thank you!
