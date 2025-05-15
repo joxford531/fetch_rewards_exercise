@@ -187,7 +187,7 @@ def seed_users(database):
 
   with sqlite3.connect(database) as conn:
     cursor = conn.cursor()
-    now = datetime.datetime.now()
+    now = datetime.datetime.now() - timedelta(days=1)
     epoch = int(now.timestamp() * 1000)
 
     for _ in range(100):
